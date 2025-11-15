@@ -14,6 +14,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
   const [newModelName, setNewModelName] = useState('');
   const [newModelConfig, setNewModelConfig] = useState<Partial<ModelConfig>>({
     provider: 'openai',
+    api_type: 'chat',
     api_base: '',
     api_key: '',
   });
@@ -27,13 +28,14 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
     addModelConfig(newModelName, {
       name: newModelName,
       provider: newModelConfig.provider || 'openai',
+      api_type: newModelConfig.api_type || 'chat',
       api_base: newModelConfig.api_base,
       api_key: newModelConfig.api_key,
       system_prompt: newModelConfig.system_prompt,
     });
 
     setNewModelName('');
-    setNewModelConfig({ provider: 'openai', api_base: '', api_key: '' });
+    setNewModelConfig({ provider: 'openai', api_type: 'chat', api_base: '', api_key: '' });
     setEditingModel(null);
   };
 
@@ -153,6 +155,21 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                       </div>
 
                       <div>
+                        <label className="block text-sm mb-1">API Type</label>
+                        <select
+                          value={config.api_type || 'chat'}
+                          onChange={(e) => handleUpdateModel(modelName, { api_type: e.target.value as any })}
+                          className="w-full p-2 bg-background border border-border rounded text-sm"
+                        >
+                          <option value="chat">Chat / Messages API</option>
+                          <option value="completions">Completions API</option>
+                        </select>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Use Completions API para Ollama e modelos mais antigos
+                        </p>
+                      </div>
+
+                      <div>
                         <label className="block text-sm mb-1">API Base URL (opcional)</label>
                         <input
                           type="text"
@@ -194,6 +211,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                   ) : (
                     <div className="text-sm space-y-1 text-muted-foreground">
                       <p>Provider: {config.provider}</p>
+                      <p>API Type: {config.api_type || 'chat'}</p>
                       {config.api_base && <p>Base URL: {config.api_base}</p>}
                       <p>API Key: {config.api_key ? '••••••••' : 'Usando .env'}</p>
                       {config.system_prompt && <p>System Prompt: {config.system_prompt.substring(0, 50)}...</p>}
@@ -233,6 +251,21 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                   <option value="ollama">Ollama</option>
                   <option value="custom">Custom (OpenAI-compatible)</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1">API Type</label>
+                <select
+                  value={newModelConfig.api_type || 'chat'}
+                  onChange={(e) => setNewModelConfig({ ...newModelConfig, api_type: e.target.value as any })}
+                  className="w-full p-2 bg-background border border-border rounded text-sm"
+                >
+                  <option value="chat">Chat / Messages API</option>
+                  <option value="completions">Completions API</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Use Completions API para Ollama e modelos mais antigos
+                </p>
               </div>
 
               <div>

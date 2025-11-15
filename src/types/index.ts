@@ -54,6 +54,7 @@ export interface GenerationSettings {
 export interface ModelConfig {
   name: string;
   provider: 'openai' | 'anthropic' | 'ollama' | 'custom';
+  api_type?: 'chat' | 'completions';
   api_base?: string;
   api_key?: string;
   system_prompt?: string;

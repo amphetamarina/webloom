@@ -55,12 +55,112 @@ export class AIService {
     try {
       // Generate each continuation sequentially with streaming
       for (let i = 0; i < settings.num_continuations; i++) {
-        await this.generateSingleStreaming(prompt, settings, i, onChunk);
+        // Use completions API if configured, otherwise use chat API
+        if (this.config.api_type === 'completions') {
+          await this.generateCompletionStreaming(prompt, settings, i, onChunk);
+        } else {
+          await this.generateSingleStreaming(prompt, settings, i, onChunk);
+        }
       }
     } catch (error) {
       console.error('Streaming generation error:', error);
       throw error;
     }
+  }
+
+  private async generateCompletionStreaming(
+    prompt: string,
+    settings: GenerationSettings,
+    completionIndex: number,
+    onChunk: (completionIndex: number, text: string, done: boolean) => void
+  ): Promise<void> {
+    // Build the full prompt with system prompt if configured
+    let fullPrompt = prompt;
+    if (this.config.system_prompt) {
+      fullPrompt = this.config.system_prompt + '\n\n' + prompt;
+    }
+
+    // Determine the endpoint URL
+    let baseURL = this.config.api_base;
+    if (!baseURL) {
+      if (this.config.provider === 'ollama') {
+        baseURL = 'http://localhost:11434/v1';
+      } else {
+        baseURL = 'https://api.openai.com/v1';
+      }
+    }
+
+    const url = `${baseURL}/completions`;
+
+    // Prepare the request body
+    const body = {
+      model: settings.model,
+      prompt: fullPrompt,
+      temperature: settings.temperature,
+      stream: true,
+    };
+
+    // Prepare headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add API key if configured
+    if (this.config.api_key) {
+      headers['Authorization'] = `Bearer ${this.config.api_key}`;
+    }
+
+    // Make the streaming request
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Completions API error: ${response.status} ${response.statusText}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const text = parsed.choices?.[0]?.text || '';
+              if (text) {
+                fullText += text;
+                onChunk(completionIndex, fullText, false);
+              }
+            } catch (e) {
+              // Ignore parsing errors for incomplete chunks
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    // Signal completion
+    onChunk(completionIndex, fullText, true);
   }
 
   private async generateSingleStreaming(
