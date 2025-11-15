@@ -1,4 +1,4 @@
-# @amphetamarina/loom
+# loom-web
 
 A web-based fork of the [original loom](https://github.com/socketteer/loom) - a tree-based writing interface powered by AI.
 
