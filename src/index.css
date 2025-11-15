@@ -4,48 +4,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* Paleta Pastel Amarelada - Light Mode */
+    --background: 45 40% 96%;           /* Creme muito claro */
+    --foreground: 30 25% 20%;           /* Marrom escuro para texto */
+    --card: 45 35% 94%;                 /* Bege claro */
+    --card-foreground: 30 25% 20%;
+    --popover: 45 40% 95%;
+    --popover-foreground: 30 25% 20%;
+    --primary: 45 85% 65%;              /* Amarelo mostarda pastel */
+    --primary-foreground: 30 30% 15%;   /* Marrom escuro */
+    --secondary: 40 60% 80%;            /* Amarelo claro suave */
+    --secondary-foreground: 30 25% 20%;
+    --muted: 45 30% 88%;                /* Bege médio */
+    --muted-foreground: 30 15% 40%;     /* Marrom médio */
+    --accent: 50 75% 70%;               /* Dourado pastel */
+    --accent-foreground: 30 25% 20%;
+    --destructive: 0 70% 65%;           /* Vermelho pastel */
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 25% 82%;               /* Bege escuro */
+    --input: 45 30% 90%;
+    --ring: 45 80% 60%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Paleta Pastel Amarelada - Dark Mode */
+    --background: 35 15% 12%;           /* Marrom escuro quente */
+    --foreground: 45 30% 92%;           /* Creme claro */
+    --card: 35 18% 15%;
+    --card-foreground: 45 30% 92%;
+    --popover: 35 18% 14%;
+    --popover-foreground: 45 30% 92%;
+    --primary: 45 70% 55%;              /* Amarelo dourado */
+    --primary-foreground: 35 20% 10%;
+    --secondary: 40 25% 25%;            /* Marrom médio */
+    --secondary-foreground: 45 30% 92%;
+    --muted: 35 20% 20%;                /* Marrom escuro médio */
+    --muted-foreground: 45 15% 65%;
+    --accent: 50 60% 50%;               /* Dourado escuro */
+    --accent-foreground: 45 30% 92%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 45 30% 92%;
+    --border: 35 20% 25%;
+    --input: 35 20% 22%;
+    --ring: 45 70% 55%;
   }
 }
 

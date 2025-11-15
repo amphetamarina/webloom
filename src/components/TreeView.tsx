@@ -23,8 +23,8 @@ interface TreeViewProps {
   treeId: string;
 }
 
-const horizontalSpacing = 300;
-const verticalSpacing = 150;
+const horizontalSpacing = 350; // Espaçamento entre níveis (esquerda-direita)
+const verticalSpacing = 120;   // Espaçamento entre irmãos (cima-baixo)
 
 const nodeTypes: NodeTypes = {
   editable: EditableNode,
@@ -43,7 +43,8 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
       const positions: Record<string, { x: number; y: number }> = {};
       const visited = new Set<string>();
 
-      const calculateSubtreeWidth = (nodeId: string): number => {
+      // Calcula a altura (vertical) da subárvore
+      const calculateSubtreeHeight = (nodeId: string): number => {
         const node = nodes[nodeId];
         if (!node || visited.has(nodeId)) return 1;
         visited.add(nodeId);
@@ -51,25 +52,26 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
         if (node.children.length === 0) return 1;
 
         return node.children.reduce((sum, childId) => {
-          return sum + calculateSubtreeWidth(childId);
+          return sum + calculateSubtreeHeight(childId);
         }, 0);
       };
 
+      // Layout horizontal: x aumenta para direita, y aumenta para baixo
       const layout = (nodeId: string, x: number, y: number, visited: Set<string>): number => {
         const node = nodes[nodeId];
-        if (!node || visited.has(nodeId)) return x;
+        if (!node || visited.has(nodeId)) return y;
         visited.add(nodeId);
 
         positions[nodeId] = { x, y };
 
-        let currentX = x;
+        let currentY = y;
         node.children.forEach((childId) => {
-          const childWidth = calculateSubtreeWidth(childId);
-          const childX = currentX + (childWidth * horizontalSpacing) / 2 - horizontalSpacing / 2;
-          currentX = layout(childId, childX, y + verticalSpacing, visited);
+          const childHeight = calculateSubtreeHeight(childId);
+          const childY = currentY + (childHeight * verticalSpacing) / 2 - verticalSpacing / 2;
+          currentY = layout(childId, x + horizontalSpacing, childY, visited);
         });
 
-        return Math.max(currentX, x + horizontalSpacing);
+        return Math.max(currentY, y + verticalSpacing);
       };
 
       visited.clear();
@@ -201,7 +203,7 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
       });
     });
 
-    // Add streaming nodes as temporary children
+    // Add streaming nodes as temporary children (layout horizontal)
     streamingNodes.forEach((text, key) => {
       const [parentId, completionIndex] = key.split('-');
       const parent = tree.nodes[parentId];
@@ -214,8 +216,8 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
           id: tempId,
           type: 'editable',
           position: {
-            x: parentPos.x + (childIndex - 1.5) * horizontalSpacing / 2,
-            y: parentPos.y + verticalSpacing,
+            x: parentPos.x + horizontalSpacing,
+            y: parentPos.y + (childIndex - 1.5) * verticalSpacing / 2,
           },
           data: {
             text: text,
