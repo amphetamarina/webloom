@@ -4,6 +4,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { ReadView } from '@/components/ReadView';
 import { TreeView } from '@/components/TreeView';
 import { GenerateDialog } from '@/components/GenerateDialog';
+import { SettingsDialog } from '@/components/SettingsDialog';
 import {
   FileText,
   GitBranch,
@@ -32,6 +33,7 @@ export default function App() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
   const { trees, createTree, exportTree, importTree, updateTreeName } = useTreeStore();
   const { preferences, toggleDarkMode } = useSettingsStore();
@@ -44,7 +46,7 @@ export default function App() {
         id: `tab-${Date.now()}`,
         treeId,
         name: 'Untitled',
-        viewMode: 'read',
+        viewMode: 'tree',
       };
       setTabs([tab]);
       setActiveTabId(tab.id);
@@ -68,7 +70,7 @@ export default function App() {
       id: `tab-${Date.now()}`,
       treeId,
       name: 'Untitled',
-      viewMode: 'read',
+      viewMode: 'tree',
     };
     setTabs([...tabs, tab]);
     setActiveTabId(tab.id);
@@ -122,7 +124,7 @@ export default function App() {
           id: `tab-${Date.now()}`,
           treeId,
           name: tree.name,
-          viewMode: 'read',
+          viewMode: 'tree',
         };
         setTabs([...tabs, tab]);
         setActiveTabId(tab.id);
@@ -203,7 +205,11 @@ export default function App() {
             {preferences.darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
 
-          <button className="p-2 rounded hover:bg-accent" title="Settings">
+          <button
+            onClick={() => setShowSettingsDialog(true)}
+            className="p-2 rounded hover:bg-accent"
+            title="Settings"
+          >
             <Settings size={20} />
           </button>
         </div>
@@ -247,6 +253,11 @@ export default function App() {
       {/* Generate Dialog */}
       {showGenerateDialog && activeTab && (
         <GenerateDialog treeId={activeTab.treeId} onClose={() => setShowGenerateDialog(false)} />
+      )}
+
+      {/* Settings Dialog */}
+      {showSettingsDialog && (
+        <SettingsDialog onClose={() => setShowSettingsDialog(false)} />
       )}
     </div>
   );
