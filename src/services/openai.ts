@@ -49,23 +49,12 @@ export class OpenAIService {
     // Get the model instance
     const model = this.provider(settings.model);
 
-    // Build request parameters
-    const requestParams: any = {
+    // Simplified parameters - only temperature
+    const result = await streamText({
       model,
       messages,
       temperature: settings.temperature,
-      topP: settings.top_p,
-      ...(settings.stop && settings.stop.length > 0 && { stopSequences: settings.stop }),
-    };
-
-    // Use maxCompletionTokens or maxTokens based on configuration
-    if (this.config.use_max_completion_tokens) {
-      requestParams.maxCompletionTokens = settings.response_length;
-    } else {
-      requestParams.maxTokens = settings.response_length;
-    }
-
-    const result = await streamText(requestParams);
+    });
 
     let fullText = '';
 

@@ -70,31 +70,22 @@ const defaultWorkspace: Workspace = {
 };
 
 const defaultGenerationSettings: GenerationSettings = {
-  model: 'gpt-4o-mini',
-  response_length: 150,
+  model: 'gpt-5-mini',
   num_continuations: 4,
   temperature: 0.8,
-  top_p: 1,
-  logprobs: 10,
-  stop: [],
-  logit_bias: {},
 };
 
 const defaultModelConfigs: Record<string, ModelConfig> = {
-  'gpt-4o': {
-    name: 'gpt-4o',
+  'gpt-5.1': {
+    name: 'gpt-5.1',
     type: 'openai-chat',
   },
-  'gpt-4o-mini': {
-    name: 'gpt-4o-mini',
+  'gpt-5-mini': {
+    name: 'gpt-5-mini',
     type: 'openai-chat',
   },
-  'gpt-4-turbo': {
-    name: 'gpt-4-turbo',
-    type: 'openai-chat',
-  },
-  'gpt-3.5-turbo': {
-    name: 'gpt-3.5-turbo',
+  'gpt-5-nano': {
+    name: 'gpt-5-nano',
     type: 'openai-chat',
   },
 };

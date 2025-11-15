@@ -29,7 +29,6 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
       type: newModelConfig.type || 'openai-chat',
       api_base: newModelConfig.api_base,
       api_key: newModelConfig.api_key,
-      use_max_completion_tokens: newModelConfig.use_max_completion_tokens,
       system_prompt: newModelConfig.system_prompt,
     });
 
@@ -92,20 +91,13 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Máximo de Tokens</label>
-                <input
-                  type="number"
-                  min="10"
-                  max="4000"
-                  value={generationSettings.response_length}
-                  onChange={(e) => updateGenerationSettings({ response_length: parseInt(e.target.value) })}
-                  className="w-full p-2 bg-background border border-border rounded"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Temperature</label>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium mb-2">
+                  Temperature
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Quanto maior, mais criativo. Recomendado: 0.7-1.0)
+                  </span>
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -113,31 +105,6 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                   step="0.1"
                   value={generationSettings.temperature}
                   onChange={(e) => updateGenerationSettings({ temperature: parseFloat(e.target.value) })}
-                  className="w-full p-2 bg-background border border-border rounded"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Top P</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={generationSettings.top_p}
-                  onChange={(e) => updateGenerationSettings({ top_p: parseFloat(e.target.value) })}
-                  className="w-full p-2 bg-background border border-border rounded"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Logprobs</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="20"
-                  value={generationSettings.logprobs}
-                  onChange={(e) => updateGenerationSettings({ logprobs: parseInt(e.target.value) })}
                   className="w-full p-2 bg-background border border-border rounded"
                 />
               </div>
@@ -212,18 +179,6 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                       </div>
 
                       <div>
-                        <label className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={config.use_max_completion_tokens || false}
-                            onChange={(e) => handleUpdateModel(modelName, { use_max_completion_tokens: e.target.checked })}
-                            className="rounded"
-                          />
-                          Usar max_completion_tokens (modelos novos como o1)
-                        </label>
-                      </div>
-
-                      <div>
                         <label className="block text-sm mb-1">System Prompt (opcional)</label>
                         <textarea
                           value={config.system_prompt || ''}
@@ -242,7 +197,6 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                       <p>Tipo: {config.type}</p>
                       {config.api_base && <p>Base URL: {config.api_base}</p>}
                       <p>API Key: {config.api_key ? '••••••••' : 'Usando .env'}</p>
-                      {config.use_max_completion_tokens && <p>Usa max_completion_tokens: Sim</p>}
                       {config.system_prompt && <p>System Prompt: {config.system_prompt.substring(0, 50)}...</p>}
                     </div>
                   )}
@@ -303,18 +257,6 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                   placeholder="sk-..."
                   className="w-full p-2 bg-background border border-border rounded text-sm"
                 />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={newModelConfig.use_max_completion_tokens || false}
-                    onChange={(e) => setNewModelConfig({ ...newModelConfig, use_max_completion_tokens: e.target.checked })}
-                    className="rounded"
-                  />
-                  Usar max_completion_tokens (modelos novos como o1)
-                </label>
               </div>
 
               <div>

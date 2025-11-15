@@ -47,13 +47,8 @@ export interface Tree {
 
 export interface GenerationSettings {
   model: string;
-  response_length: number;
   num_continuations: number;
   temperature: number;
-  top_p: number;
-  logprobs: number;
-  stop?: string[];
-  logit_bias?: Record<string, number>;
 }
 
 export interface ModelConfig {
@@ -61,7 +56,6 @@ export interface ModelConfig {
   type: 'openai' | 'openai-chat' | 'together' | 'llama-cpp' | 'custom';
   api_base?: string;
   api_key?: string;
-  use_max_completion_tokens?: boolean;
   system_prompt?: string;
 }
 

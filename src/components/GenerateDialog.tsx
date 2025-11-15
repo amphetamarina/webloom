@@ -116,7 +116,7 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Number of continuations</label>
+              <label className="block text-sm font-medium mb-2">Número de Continuações</label>
               <input
                 type="number"
                 min="1"
@@ -126,22 +126,6 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
                   useSettingsStore
                     .getState()
                     .updateGenerationSettings({ num_continuations: parseInt(e.target.value) })
-                }
-                className="w-full p-2 bg-background border border-border rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Max tokens</label>
-              <input
-                type="number"
-                min="10"
-                max="4000"
-                value={generationSettings.response_length}
-                onChange={(e) =>
-                  useSettingsStore
-                    .getState()
-                    .updateGenerationSettings({ response_length: parseInt(e.target.value) })
                 }
                 className="w-full p-2 bg-background border border-border rounded"
               />
@@ -159,23 +143,6 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
                   useSettingsStore
                     .getState()
                     .updateGenerationSettings({ temperature: parseFloat(e.target.value) })
-                }
-                className="w-full p-2 bg-background border border-border rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Top P</label>
-              <input
-                type="number"
-                min="0"
-                max="1"
-                step="0.1"
-                value={generationSettings.top_p}
-                onChange={(e) =>
-                  useSettingsStore
-                    .getState()
-                    .updateGenerationSettings({ top_p: parseFloat(e.target.value) })
                 }
                 className="w-full p-2 bg-background border border-border rounded"
               />
