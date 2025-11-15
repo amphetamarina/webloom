@@ -29,7 +29,7 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
       const prompt = ancestry.map((node) => node.text).join('\n');
 
       if (!prompt.trim()) {
-        toast.error('Adicione algum texto antes de gerar');
+        toast.error('Add some text before generating');
         setIsGenerating(false);
         return;
       }
@@ -37,14 +37,14 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
       // Get model config
       const modelConfig = modelConfigs[generationSettings.model];
       if (!modelConfig) {
-        throw new Error('Configuração do modelo não encontrada');
+        throw new Error('Model configuration not found');
       }
 
       // Initialize AI service
       const aiService = new AIService(modelConfig);
 
       // Generate with streaming
-      toast.loading(`Gerando ${generationSettings.num_continuations} continuações...`, {
+      toast.loading(`Generating ${generationSettings.num_continuations} continuations...`, {
         id: 'generating',
       });
 
@@ -71,12 +71,12 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
       }
 
       toast.dismiss('generating');
-      toast.success(`Continuações geradas!`);
+      toast.success(`Continuations generated!`);
       onClose();
     } catch (error) {
       console.error('Generation failed:', error);
       toast.dismiss('generating');
-      toast.error(error instanceof Error ? error.message : 'Falha na geração');
+      toast.error(error instanceof Error ? error.message : 'Generation failed');
     } finally {
       setIsGenerating(false);
     }
@@ -116,7 +116,7 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Número de Continuações</label>
+              <label className="block text-sm font-medium mb-2">Number of Continuations</label>
               <input
                 type="number"
                 min="1"

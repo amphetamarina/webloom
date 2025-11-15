@@ -16,6 +16,7 @@ import {
   Sun,
   Zap,
   X,
+  Github,
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import clsx from 'clsx';
@@ -160,7 +161,7 @@ export default function App() {
       // Update both the tab name and the tree name
       setTabs(tabs.map(t => t.id === tabId ? { ...t, name: editingTabName } : t));
       updateTreeName(treeId, editingTabName);
-      toast.success('Nome atualizado');
+      toast.success('Name updated');
     }
     setEditingTabId(null);
     setEditingTabName('');
@@ -275,7 +276,7 @@ export default function App() {
                   e.stopPropagation();
                   handleTabNameEdit(tab.id, tab.name);
                 }}
-                title="Clique duplo para editar"
+                title="Double-click to edit"
               >
                 {tab.name}
               </span>
@@ -310,6 +311,17 @@ export default function App() {
       {showSettingsDialog && (
         <SettingsDialog onClose={() => setShowSettingsDialog(false)} />
       )}
+
+      {/* GitHub Link */}
+      <a
+        href="https://github.com/amphetamarina/loom"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-4 right-4 p-3 bg-background border border-border rounded-full hover:bg-accent transition-colors shadow-lg z-40"
+        title="View on GitHub"
+      >
+        <Github size={20} />
+      </a>
     </div>
   );
 }

@@ -21,7 +21,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
 
   const handleSaveModel = () => {
     if (!newModelName.trim()) {
-      alert('Digite um nome para o modelo');
+      alert('Enter a model name');
       return;
     }
 
@@ -44,7 +44,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
   };
 
   const handleDeleteModel = (modelName: string) => {
-    if (confirm(`Tem certeza que deseja excluir o modelo "${modelName}"?`)) {
+    if (confirm(`Are you sure you want to delete the model "${modelName}"?`)) {
       removeModelConfig(modelName);
     }
   };
@@ -54,7 +54,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
       <div className="bg-background border border-border rounded-lg w-full max-w-4xl max-h-[90vh] overflow-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-background">
-          <h2 className="text-xl font-semibold">Configurações</h2>
+          <h2 className="text-xl font-semibold">Settings</h2>
           <button onClick={onClose} className="p-2 hover:bg-accent rounded">
             <X size={20} />
           </button>
@@ -64,10 +64,10 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
         <div className="p-6 space-y-8">
           {/* Generation Settings */}
           <section>
-            <h3 className="text-lg font-semibold mb-4">Configurações de Geração</h3>
+            <h3 className="text-lg font-semibold mb-4">Generation Settings</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Modelo Padrão</label>
+                <label className="block text-sm font-medium mb-2">Default Model</label>
                 <select
                   value={generationSettings.model}
                   onChange={(e) => updateGenerationSettings({ model: e.target.value })}
@@ -82,7 +82,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Número de Continuações</label>
+                <label className="block text-sm font-medium mb-2">Number of Continuations</label>
                 <input
                   type="number"
                   min="1"
@@ -97,7 +97,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                 <label className="block text-sm font-medium mb-2">
                   Temperature
                   <span className="text-xs text-muted-foreground ml-2">
-                    (Quanto maior, mais criativo. Recomendado: 0.7-1.0)
+                    (Higher values are more creative. Recommended: 0.7-1.0)
                   </span>
                 </label>
                 <input
@@ -115,7 +115,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
 
           {/* Model Configurations */}
           <section>
-            <h3 className="text-lg font-semibold mb-4">Configurações de Modelos</h3>
+            <h3 className="text-lg font-semibold mb-4">Model Configurations</h3>
 
             <div className="space-y-4">
               {Object.entries(modelConfigs).map(([modelName, config]) => (
@@ -127,7 +127,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                         onClick={() => setEditingModel(editingModel === modelName ? null : modelName)}
                         className="p-1 hover:bg-accent rounded text-sm"
                       >
-                        {editingModel === modelName ? 'Cancelar' : 'Editar'}
+                        {editingModel === modelName ? 'Cancel' : 'Edit'}
                       </button>
                       <button
                         onClick={() => handleDeleteModel(modelName)}
@@ -165,12 +165,12 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                           <option value="completions">Completions API</option>
                         </select>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Use Completions API para Ollama e modelos mais antigos
+                          Use Completions API for Ollama and older models
                         </p>
                       </div>
 
                       <div>
-                        <label className="block text-sm mb-1">API Base URL (opcional)</label>
+                        <label className="block text-sm mb-1">API Base URL (optional)</label>
                         <input
                           type="text"
                           value={config.api_base || ''}
@@ -181,7 +181,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                       </div>
 
                       <div>
-                        <label className="block text-sm mb-1">API Key (opcional)</label>
+                        <label className="block text-sm mb-1">API Key (optional)</label>
                         <input
                           type="password"
                           value={config.api_key || ''}
@@ -190,21 +190,21 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                           className="w-full p-2 bg-background border border-border rounded text-sm"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          Se vazio, usará a variável de ambiente VITE_OPENAI_API_KEY
+                          If empty, will use VITE_OPENAI_API_KEY environment variable
                         </p>
                       </div>
 
                       <div>
-                        <label className="block text-sm mb-1">System Prompt (opcional)</label>
+                        <label className="block text-sm mb-1">System Prompt (optional)</label>
                         <textarea
                           value={config.system_prompt || ''}
                           onChange={(e) => handleUpdateModel(modelName, { system_prompt: e.target.value })}
-                          placeholder="Você é um assistente útil..."
+                          placeholder="You are a helpful assistant..."
                           rows={3}
                           className="w-full p-2 bg-background border border-border rounded text-sm resize-none"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          Prompt do sistema para modelos de chat
+                          System prompt for chat models
                         </p>
                       </div>
                     </div>
@@ -213,7 +213,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                       <p>Provider: {config.provider}</p>
                       <p>API Type: {config.api_type || 'chat'}</p>
                       {config.api_base && <p>Base URL: {config.api_base}</p>}
-                      <p>API Key: {config.api_key ? '••••••••' : 'Usando .env'}</p>
+                      <p>API Key: {config.api_key ? '••••••••' : 'Using .env'}</p>
                       {config.system_prompt && <p>System Prompt: {config.system_prompt.substring(0, 50)}...</p>}
                     </div>
                   )}
@@ -225,16 +225,16 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
             <div className="mt-4 p-4 border border-dashed border-border rounded-lg space-y-3">
               <h4 className="font-medium flex items-center gap-2">
                 <Plus size={16} />
-                Adicionar Novo Modelo
+                Add New Model
               </h4>
 
               <div>
-                <label className="block text-sm mb-1">Nome do Modelo</label>
+                <label className="block text-sm mb-1">Model Name</label>
                 <input
                   type="text"
                   value={newModelName}
                   onChange={(e) => setNewModelName(e.target.value)}
-                  placeholder="meu-modelo-customizado"
+                  placeholder="my-custom-model"
                   className="w-full p-2 bg-background border border-border rounded text-sm"
                 />
               </div>
@@ -264,12 +264,12 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                   <option value="completions">Completions API</option>
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Use Completions API para Ollama e modelos mais antigos
+                  Use Completions API for Ollama and older models
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm mb-1">API Base URL (opcional)</label>
+                <label className="block text-sm mb-1">API Base URL (optional)</label>
                 <input
                   type="text"
                   value={newModelConfig.api_base}
@@ -280,7 +280,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
               </div>
 
               <div>
-                <label className="block text-sm mb-1">API Key (opcional)</label>
+                <label className="block text-sm mb-1">API Key (optional)</label>
                 <input
                   type="password"
                   value={newModelConfig.api_key}
@@ -291,11 +291,11 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
               </div>
 
               <div>
-                <label className="block text-sm mb-1">System Prompt (opcional)</label>
+                <label className="block text-sm mb-1">System Prompt (optional)</label>
                 <textarea
                   value={newModelConfig.system_prompt || ''}
                   onChange={(e) => setNewModelConfig({ ...newModelConfig, system_prompt: e.target.value })}
-                  placeholder="Você é um assistente útil..."
+                  placeholder="You are a helpful assistant..."
                   rows={3}
                   className="w-full p-2 bg-background border border-border rounded text-sm resize-none"
                 />
@@ -306,7 +306,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                 className="w-full px-4 py-2 bg-primary text-primary-foreground rounded hover:opacity-90 flex items-center justify-center gap-2"
               >
                 <Save size={16} />
-                Salvar Modelo
+                Save Model
               </button>
             </div>
           </section>
@@ -318,7 +318,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
             onClick={onClose}
             className="px-4 py-2 bg-primary text-primary-foreground rounded hover:opacity-90"
           >
-            Fechar
+            Close
           </button>
         </div>
       </div>
