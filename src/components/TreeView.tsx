@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -15,6 +15,7 @@ import { useTreeStore } from '@/stores/treeStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { OpenAIService } from '@/services/openai';
 import { EditableNode } from './EditableNode';
+import { NodeDetailModal } from './NodeDetailModal';
 import type { TreeNode } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -34,6 +35,8 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
   const { generationSettings, modelConfigs } = useSettingsStore();
   const tree = trees[treeId];
   const [generatingNodes, setGeneratingNodes] = useState<Set<string>>(new Set());
+  const [streamingNodes, setStreamingNodes] = useState<Map<string, string>>(new Map());
+  const [selectedNodeForDetail, setSelectedNodeForDetail] = useState<string | null>(null);
 
   const calculateLayout = useCallback(
     (rootId: string, nodes: Record<string, TreeNode>) => {
@@ -118,28 +121,38 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
         // Initialize OpenAI service
         const openaiService = new OpenAIService(modelConfig);
 
-        // Generate completions
+        // Generate with streaming
         toast.loading(`Gerando ${generationSettings.num_continuations} continuações...`, {
           id: 'generating',
         });
 
-        const response = await openaiService.generate(prompt, generationSettings);
+        await openaiService.generateStreaming(
+          prompt,
+          generationSettings,
+          (completionIndex: number, text: string, done: boolean) => {
+            if (!done) {
+              // Update streaming state
+              setStreamingNodes((prev) => {
+                const next = new Map(prev);
+                next.set(`${nodeId}-${completionIndex}`, text);
+                return next;
+              });
+            } else {
+              // Create final node
+              const childId = createNode(treeId, text, nodeId);
+
+              // Clear streaming state for this completion
+              setStreamingNodes((prev) => {
+                const next = new Map(prev);
+                next.delete(`${nodeId}-${completionIndex}`);
+                return next;
+              });
+            }
+          }
+        );
 
         toast.dismiss('generating');
-
-        // Create child nodes for each completion
-        response.completions.forEach((completion) => {
-          const childId = createNode(treeId, completion.text, nodeId);
-          // Store token data if available
-          if (completion.tokens.length > 0) {
-            updateNode(treeId, childId, {
-              tokens: completion.tokens,
-              finishReason: completion.finishReason,
-            });
-          }
-        });
-
-        toast.success(`${response.completions.length} continuações geradas!`);
+        toast.success(`Continuações geradas!`);
       } catch (error) {
         console.error('Generation failed:', error);
         toast.error(error instanceof Error ? error.message : 'Falha na geração');
@@ -158,55 +171,129 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
       generationSettings,
       modelConfigs,
       createNode,
-      updateNode,
     ]
   );
+
+  const handleNodeDetailClick = useCallback((nodeId: string) => {
+    setSelectedNodeForDetail(nodeId);
+  }, []);
 
   const { nodes: flowNodes, edges: flowEdges } = useMemo(() => {
     if (!tree) return { nodes: [], edges: [] };
 
     const positions = calculateLayout(tree.rootId, tree.nodes);
+    const allNodes: Node[] = [];
 
-    const nodes: Node[] = Object.values(tree.nodes).map((node) => ({
-      id: node.id,
-      type: 'editable',
-      position: positions[node.id] || { x: 0, y: 0 },
-      data: {
-        text: node.text,
-        bookmark: node.bookmark,
-        isSelected: node.id === tree.currentNodeId,
-        onEdit: handleEditNode,
-        onGenerate: handleGenerateFromNode,
-      },
-    }));
+    // Add existing nodes
+    Object.values(tree.nodes).forEach((node) => {
+      allNodes.push({
+        id: node.id,
+        type: 'editable',
+        position: positions[node.id] || { x: 0, y: 0 },
+        data: {
+          text: node.text,
+          bookmark: node.bookmark,
+          isSelected: node.id === tree.currentNodeId,
+          onEdit: handleEditNode,
+          onGenerate: handleGenerateFromNode,
+          onDetailClick: handleNodeDetailClick,
+        },
+      });
+    });
 
-    const edges: Edge[] = Object.values(tree.nodes).flatMap((node) =>
-      node.children.map((childId) => ({
-        id: `${node.id}-${childId}`,
-        source: node.id,
-        target: childId,
+    // Add streaming nodes as temporary children
+    streamingNodes.forEach((text, key) => {
+      const [parentId, completionIndex] = key.split('-');
+      const parent = tree.nodes[parentId];
+      if (parent && positions[parentId]) {
+        const tempId = `temp-${key}`;
+        const parentPos = positions[parentId];
+        const childIndex = parseInt(completionIndex);
+
+        allNodes.push({
+          id: tempId,
+          type: 'editable',
+          position: {
+            x: parentPos.x + (childIndex - 1.5) * horizontalSpacing / 2,
+            y: parentPos.y + verticalSpacing,
+          },
+          data: {
+            text: text,
+            bookmark: false,
+            isSelected: false,
+            isStreaming: true,
+            onEdit: () => {},
+            onGenerate: () => {},
+            onDetailClick: () => {},
+          },
+        });
+      }
+    });
+
+    const edges: Edge[] = [];
+
+    // Add edges for existing nodes
+    Object.values(tree.nodes).forEach((node) => {
+      node.children.forEach((childId) => {
+        edges.push({
+          id: `${node.id}-${childId}`,
+          source: node.id,
+          target: childId,
+          type: 'smoothstep',
+          animated: generatingNodes.has(node.id),
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#6b7280',
+          },
+          style: {
+            stroke: generatingNodes.has(node.id) ? '#3b82f6' : '#6b7280',
+            strokeWidth: generatingNodes.has(node.id) ? 2 : 1,
+          },
+        });
+      });
+    });
+
+    // Add edges for streaming nodes
+    streamingNodes.forEach((_, key) => {
+      const [parentId] = key.split('-');
+      const tempId = `temp-${key}`;
+      edges.push({
+        id: `${parentId}-${tempId}`,
+        source: parentId,
+        target: tempId,
         type: 'smoothstep',
-        animated: generatingNodes.has(node.id),
+        animated: true,
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#6b7280',
+          color: '#3b82f6',
         },
         style: {
-          stroke: generatingNodes.has(node.id) ? '#3b82f6' : '#6b7280',
-          strokeWidth: generatingNodes.has(node.id) ? 2 : 1,
+          stroke: '#3b82f6',
+          strokeWidth: 2,
         },
-      }))
-    );
+      });
+    });
 
-    return { nodes, edges };
-  }, [tree, calculateLayout, handleEditNode, handleGenerateFromNode, generatingNodes]);
+    return { nodes: allNodes, edges };
+  }, [tree, calculateLayout, handleEditNode, handleGenerateFromNode, handleNodeDetailClick, generatingNodes, streamingNodes]);
 
-  const [nodes, , onNodesChange] = useNodesState(flowNodes);
-  const [edges, , onEdgesChange] = useEdgesState(flowEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges);
+
+  // Sync nodes and edges when flowNodes/flowEdges change
+  useEffect(() => {
+    setNodes(flowNodes);
+  }, [flowNodes, setNodes]);
+
+  useEffect(() => {
+    setEdges(flowEdges);
+  }, [flowEdges, setEdges]);
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
-      setCurrentNode(treeId, node.id);
+      if (!node.id.startsWith('temp-')) {
+        setCurrentNode(treeId, node.id);
+      }
     },
     [treeId, setCurrentNode]
   );
@@ -220,28 +307,40 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
   }
 
   return (
-    <div className="w-full h-full bg-background">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        nodeTypes={nodeTypes}
-        fitView
-        attributionPosition="bottom-left"
-        minZoom={0.1}
-        maxZoom={2}
-      >
-        <Background />
-        <Controls />
-        <MiniMap
-          nodeColor={(node) => {
-            if (node.id === tree.currentNodeId) return '#3b82f6';
-            return '#1f2937';
-          }}
+    <>
+      <div className="w-full h-full bg-background">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick}
+          nodeTypes={nodeTypes}
+          fitView
+          attributionPosition="bottom-left"
+          minZoom={0.1}
+          maxZoom={2}
+        >
+          <Background />
+          <Controls />
+          <MiniMap
+            nodeColor={(node) => {
+              if (node.id === tree.currentNodeId) return '#3b82f6';
+              if (node.id.startsWith('temp-')) return '#10b981';
+              return '#1f2937';
+            }}
+          />
+        </ReactFlow>
+      </div>
+
+      {selectedNodeForDetail && (
+        <NodeDetailModal
+          treeId={treeId}
+          nodeId={selectedNodeForDetail}
+          onClose={() => setSelectedNodeForDetail(null)}
+          onEdit={handleEditNode}
         />
-      </ReactFlow>
-    </div>
+      )}
+    </>
   );
 };

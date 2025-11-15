@@ -1,6 +1,6 @@
 import React, { useState, useCallback, memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { BookmarkIcon, Zap } from 'lucide-react';
+import { BookmarkIcon, Zap, Maximize2 } from 'lucide-react';
 import clsx from 'clsx';
 
 interface NodeData {
@@ -8,8 +8,10 @@ interface NodeData {
   text: string;
   bookmark?: boolean;
   isSelected?: boolean;
+  isStreaming?: boolean;
   onEdit: (nodeId: string, text: string) => void;
   onGenerate: (nodeId: string) => void;
+  onDetailClick: (nodeId: string) => void;
 }
 
 export const EditableNode = memo(({ id, data, selected }: NodeProps<NodeData>) => {
@@ -56,12 +58,27 @@ export const EditableNode = memo(({ id, data, selected }: NodeProps<NodeData>) =
     [id, data]
   );
 
+  const handleDetailClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      data.onDetailClick(id);
+    },
+    [id, data]
+  );
+
+  const truncateText = (text: string, maxLength: number = 60) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <div
       className={clsx(
         'px-4 py-3 rounded-lg border-2 shadow-lg transition-all min-w-[200px] max-w-[300px]',
         selected
           ? 'border-primary bg-primary/10'
+          : data.isStreaming
+          ? 'border-green-500 bg-green-500/10 animate-pulse'
           : data.bookmark
           ? 'border-yellow-500 bg-background'
           : 'border-border bg-background',
@@ -86,7 +103,13 @@ export const EditableNode = memo(({ id, data, selected }: NodeProps<NodeData>) =
             />
           ) : (
             <div className="text-sm break-words">
-              {data.text || '(vazio - clique duplo para editar)'}
+              {data.isStreaming ? (
+                <span className="text-green-600 dark:text-green-400">
+                  {data.text}▊
+                </span>
+              ) : (
+                truncateText(data.text || '(vazio - clique duplo para editar)')
+              )}
             </div>
           )}
         </div>
@@ -95,7 +118,16 @@ export const EditableNode = memo(({ id, data, selected }: NodeProps<NodeData>) =
           {data.bookmark && (
             <BookmarkIcon size={16} className="text-yellow-500" fill="currentColor" />
           )}
-          {selected && !isEditing && (
+          {!isEditing && !data.isStreaming && data.text && data.text.length > 60 && (
+            <button
+              onClick={handleDetailClick}
+              className="p-1 hover:bg-accent rounded transition-colors"
+              title="Ver texto completo"
+            >
+              <Maximize2 size={14} className="text-muted-foreground" />
+            </button>
+          )}
+          {selected && !isEditing && !data.isStreaming && (
             <button
               onClick={handleGenerateClick}
               className="p-1 hover:bg-primary/20 rounded transition-colors"

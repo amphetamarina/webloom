@@ -32,6 +32,89 @@ export class OpenAIService {
     }
   }
 
+  async generateStreaming(
+    prompt: string,
+    settings: GenerationSettings,
+    onChunk: (completionIndex: number, text: string, done: boolean) => void
+  ): Promise<void> {
+    const isChat = this.config.type === 'openai-chat';
+
+    try {
+      // Generate each continuation sequentially with streaming
+      for (let i = 0; i < settings.num_continuations; i++) {
+        if (isChat) {
+          await this.generateChatStreaming(prompt, settings, i, onChunk);
+        } else {
+          await this.generateCompletionStreaming(prompt, settings, i, onChunk);
+        }
+      }
+    } catch (error) {
+      console.error('Streaming generation error:', error);
+      throw error;
+    }
+  }
+
+  private async generateChatStreaming(
+    prompt: string,
+    settings: GenerationSettings,
+    completionIndex: number,
+    onChunk: (completionIndex: number, text: string, done: boolean) => void
+  ): Promise<void> {
+    const stream = await this.client.chat.completions.create({
+      model: settings.model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: settings.temperature,
+      max_tokens: settings.response_length,
+      top_p: settings.top_p,
+      stop: settings.stop,
+      stream: true,
+    });
+
+    let fullText = '';
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content;
+      if (delta) {
+        fullText += delta;
+        onChunk(completionIndex, fullText, false);
+      }
+    }
+
+    // Signal completion
+    onChunk(completionIndex, fullText, true);
+  }
+
+  private async generateCompletionStreaming(
+    prompt: string,
+    settings: GenerationSettings,
+    completionIndex: number,
+    onChunk: (completionIndex: number, text: string, done: boolean) => void
+  ): Promise<void> {
+    const stream = await this.client.completions.create({
+      model: settings.model,
+      prompt: prompt,
+      temperature: settings.temperature,
+      max_tokens: settings.response_length,
+      top_p: settings.top_p,
+      stop: settings.stop,
+      logit_bias: settings.logit_bias,
+      stream: true,
+    });
+
+    let fullText = '';
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.text;
+      if (delta) {
+        fullText += delta;
+        onChunk(completionIndex, fullText, false);
+      }
+    }
+
+    // Signal completion
+    onChunk(completionIndex, fullText, true);
+  }
+
   private async generateChat(
     prompt: string,
     settings: GenerationSettings
