@@ -28,43 +28,55 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
       const ancestry = getAncestry(treeId, currentNode.id);
       const prompt = ancestry.map((node) => node.text).join('\n');
 
+      if (!prompt.trim()) {
+        toast.error('Adicione algum texto antes de gerar');
+        setIsGenerating(false);
+        return;
+      }
+
       // Get model config
       const modelConfig = modelConfigs[generationSettings.model];
       if (!modelConfig) {
-        throw new Error('Model configuration not found');
+        throw new Error('Configuração do modelo não encontrada');
       }
 
       // Initialize OpenAI service
       const openaiService = new OpenAIService(modelConfig);
 
-      // Generate completions
-      const response = await openaiService.generate(prompt, generationSettings);
-
-      // Create child nodes for each completion
-      response.completions.forEach((completion) => {
-        const childId = createNode(treeId, completion.text, currentNode.id);
-        // Store token data if available
-        if (completion.tokens.length > 0) {
-          useTreeStore.getState().updateNode(treeId, childId, {
-            tokens: completion.tokens,
-            finishReason: completion.finishReason,
-          });
-        }
+      // Generate with streaming
+      toast.loading(`Gerando ${generationSettings.num_continuations} continuações...`, {
+        id: 'generating',
       });
 
+      const completedTexts: string[] = [];
+
+      await openaiService.generateStreaming(
+        prompt,
+        generationSettings,
+        (_completionIndex: number, text: string, done: boolean) => {
+          if (done) {
+            // Create final node
+            createNode(treeId, text, currentNode.id);
+            completedTexts.push(text);
+          }
+        }
+      );
+
       // Navigate to first child
-      if (response.completions.length > 0) {
+      if (completedTexts.length > 0) {
         const firstChildId = tree.nodes[currentNode.id].children[0];
         if (firstChildId) {
           setCurrentNode(treeId, firstChildId);
         }
       }
 
-      toast.success(`Generated ${response.completions.length} continuations`);
+      toast.dismiss('generating');
+      toast.success(`Continuações geradas!`);
       onClose();
     } catch (error) {
       console.error('Generation failed:', error);
-      toast.error(error instanceof Error ? error.message : 'Generation failed');
+      toast.dismiss('generating');
+      toast.error(error instanceof Error ? error.message : 'Falha na geração');
     } finally {
       setIsGenerating(false);
     }

@@ -141,7 +141,7 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
               });
             } else {
               // Create final node
-              const childId = createNode(treeId, text, nodeId);
+              createNode(treeId, text, nodeId);
 
               // Clear streaming state for this completion
               setStreamingNodes((prev) => {

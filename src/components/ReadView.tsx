@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTreeStore } from '@/stores/treeStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import type { TreeNode } from '@/types';
 import { ChevronLeft, ChevronRight, Edit2, BookmarkIcon } from 'lucide-react';
 import clsx from 'clsx';
 

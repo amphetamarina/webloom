@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTreeStore } from '@/stores/treeStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ReadView } from '@/components/ReadView';
