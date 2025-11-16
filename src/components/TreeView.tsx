@@ -32,7 +32,7 @@ const nodeTypes: NodeTypes = {
 
 export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
   const { trees, setCurrentNode, updateNode, createNode, getAncestry, reparentNode } = useTreeStore();
-  const { generationSettings, modelConfigs, preferences } = useSettingsStore();
+  const { generationSettings, modelConfigs, preferences, apiKeys } = useSettingsStore();
   const tree = trees[treeId];
   const [generatingNodes, setGeneratingNodes] = useState<Set<string>>(new Set());
   const [loadingNodes, setLoadingNodes] = useState<Map<string, number>>(new Map()); // nodeId -> number of loading placeholders
@@ -127,8 +127,40 @@ export const TreeView: React.FC<TreeViewProps> = ({ treeId }) => {
           throw new Error('Model configuration not found');
         }
 
+        // Check if API key is configured for this provider
+        if (!modelConfig.api_key) {
+          if (modelConfig.provider === 'openai' && !apiKeys.openai) {
+            toast.error('OpenAI API key not configured. Please add it in Settings.');
+            setGeneratingNodes((prev) => {
+              const next = new Set(prev);
+              next.delete(nodeId);
+              return next;
+            });
+            setLoadingNodes((prev) => {
+              const next = new Map(prev);
+              next.delete(nodeId);
+              return next;
+            });
+            return;
+          }
+          if (modelConfig.provider === 'anthropic' && !apiKeys.anthropic) {
+            toast.error('Anthropic API key not configured. Please add it in Settings.');
+            setGeneratingNodes((prev) => {
+              const next = new Set(prev);
+              next.delete(nodeId);
+              return next;
+            });
+            setLoadingNodes((prev) => {
+              const next = new Map(prev);
+              next.delete(nodeId);
+              return next;
+            });
+            return;
+          }
+        }
+
         // Initialize AI service
-        const aiService = new AIService(modelConfig);
+        const aiService = new AIService(modelConfig, apiKeys);
 
         // Generate completions
         toast.loading(`Generating ${generationSettings.num_continuations} continuations...`, {

@@ -39,7 +39,18 @@ export default function App() {
   const [editingTabName, setEditingTabName] = useState('');
 
   const { trees, createTree, exportTree, importTree, updateTreeName } = useTreeStore();
-  const { preferences, toggleDarkMode } = useSettingsStore();
+  const { preferences, toggleDarkMode, apiKeys } = useSettingsStore();
+
+  // Check for API keys on startup
+  useEffect(() => {
+    const hasApiKeys = apiKeys.openai || apiKeys.anthropic;
+    if (!hasApiKeys) {
+      toast.error('Please configure your API keys in Settings', {
+        duration: 5000,
+      });
+      setShowSettingsDialog(true);
+    }
+  }, []);
 
   // Initialize with a default tree if none exists
   useEffect(() => {

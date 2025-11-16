@@ -8,7 +8,7 @@ interface SettingsDialogProps {
 }
 
 export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
-  const { modelConfigs, generationSettings, updateGenerationSettings, addModelConfig, removeModelConfig, updateModelConfig } = useSettingsStore();
+  const { modelConfigs, generationSettings, apiKeys, updateGenerationSettings, updateApiKeys, addModelConfig, removeModelConfig, updateModelConfig } = useSettingsStore();
 
   const [editingModel, setEditingModel] = useState<string | null>(null);
   const [newModelName, setNewModelName] = useState('');
@@ -113,6 +113,44 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
             </div>
           </section>
 
+          {/* API Keys */}
+          <section>
+            <h3 className="text-lg font-semibold mb-4">API Keys</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  OpenAI API Key
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Required for OpenAI models)
+                  </span>
+                </label>
+                <input
+                  type="password"
+                  value={apiKeys.openai}
+                  onChange={(e) => updateApiKeys({ openai: e.target.value })}
+                  placeholder="sk-..."
+                  className="w-full p-2 bg-background border border-border rounded"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Anthropic API Key
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Required for Claude models)
+                  </span>
+                </label>
+                <input
+                  type="password"
+                  value={apiKeys.anthropic}
+                  onChange={(e) => updateApiKeys({ anthropic: e.target.value })}
+                  placeholder="sk-ant-..."
+                  className="w-full p-2 bg-background border border-border rounded"
+                />
+              </div>
+            </div>
+          </section>
+
           {/* Model Configurations */}
           <section>
             <h3 className="text-lg font-semibold mb-4">Model Configurations</h3>
@@ -190,7 +228,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                           className="w-full p-2 bg-background border border-border rounded text-sm"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          If empty, will use VITE_OPENAI_API_KEY environment variable
+                          Override global API key for this specific model
                         </p>
                       </div>
 
@@ -213,7 +251,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ onClose }) => {
                       <p>Provider: {config.provider}</p>
                       <p>API Type: {config.api_type || 'chat'}</p>
                       {config.api_base && <p>Base URL: {config.api_base}</p>}
-                      <p>API Key: {config.api_key ? '••••••••' : 'Using .env'}</p>
+                      <p>API Key: {config.api_key ? '••••••••' : 'Using global API key'}</p>
                       {config.system_prompt && <p>System Prompt: {config.system_prompt.substring(0, 50)}...</p>}
                     </div>
                   )}

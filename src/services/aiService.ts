@@ -6,16 +6,18 @@ import type { GenerationSettings, ModelConfig } from '@/types';
 
 export class AIService {
   private config: ModelConfig;
+  private globalApiKeys: { openai: string; anthropic: string };
 
-  constructor(config: ModelConfig) {
+  constructor(config: ModelConfig, globalApiKeys: { openai: string; anthropic: string }) {
     this.config = config;
+    this.globalApiKeys = globalApiKeys;
   }
 
   private getModel(modelName: string): any {
     switch (this.config.provider) {
       case 'openai': {
         const openai = createOpenAI({
-          apiKey: this.config.api_key || (import.meta as any).env?.VITE_OPENAI_API_KEY || '',
+          apiKey: this.config.api_key || this.globalApiKeys.openai || '',
           baseURL: this.config.api_base,
         });
         return openai(modelName);
@@ -23,7 +25,7 @@ export class AIService {
 
       case 'anthropic': {
         const anthropic = createAnthropic({
-          apiKey: this.config.api_key || (import.meta as any).env?.VITE_ANTHROPIC_API_KEY || '',
+          apiKey: this.config.api_key || this.globalApiKeys.anthropic || '',
           baseURL: this.config.api_base,
         });
         return anthropic(modelName);
@@ -108,9 +110,13 @@ export class AIService {
       'Content-Type': 'application/json',
     };
 
-    // Add API key if configured
-    if (this.config.api_key) {
-      headers['Authorization'] = `Bearer ${this.config.api_key}`;
+    // Add API key - use model-specific key or global key
+    const apiKey = this.config.api_key ||
+      (this.config.provider === 'openai' ? this.globalApiKeys.openai :
+       this.config.provider === 'anthropic' ? this.globalApiKeys.anthropic : '');
+
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
     }
 
     // Make the request

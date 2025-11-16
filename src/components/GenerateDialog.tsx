@@ -14,7 +14,7 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { trees, getCurrentNode, getAncestry, createNode, setCurrentNode } = useTreeStore();
-  const { generationSettings, modelConfigs } = useSettingsStore();
+  const { generationSettings, modelConfigs, apiKeys } = useSettingsStore();
 
   const tree = trees[treeId];
   const currentNode = getCurrentNode(treeId);
@@ -40,8 +40,22 @@ export const GenerateDialog: React.FC<GenerateDialogProps> = ({ treeId, onClose 
         throw new Error('Model configuration not found');
       }
 
+      // Check if API key is configured for this provider
+      if (!modelConfig.api_key) {
+        if (modelConfig.provider === 'openai' && !apiKeys.openai) {
+          toast.error('OpenAI API key not configured. Please add it in Settings.');
+          setIsGenerating(false);
+          return;
+        }
+        if (modelConfig.provider === 'anthropic' && !apiKeys.anthropic) {
+          toast.error('Anthropic API key not configured. Please add it in Settings.');
+          setIsGenerating(false);
+          return;
+        }
+      }
+
       // Initialize AI service
-      const aiService = new AIService(modelConfig);
+      const aiService = new AIService(modelConfig, apiKeys);
 
       // Generate completions
       toast.loading(`Generating ${generationSettings.num_continuations} continuations...`, {

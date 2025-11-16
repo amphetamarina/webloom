@@ -3,11 +3,17 @@ import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { Preferences, Workspace, GenerationSettings, ModelConfig } from '@/types';
 
+interface ApiKeys {
+  openai: string;
+  anthropic: string;
+}
+
 interface SettingsState {
   preferences: Preferences;
   workspace: Workspace;
   generationSettings: GenerationSettings;
   modelConfigs: Record<string, ModelConfig>;
+  apiKeys: ApiKeys;
 
   // Preferences
   updatePreferences: (updates: Partial<Preferences>) => void;
@@ -25,6 +31,9 @@ interface SettingsState {
   addModelConfig: (name: string, config: ModelConfig) => void;
   removeModelConfig: (name: string) => void;
   updateModelConfig: (name: string, updates: Partial<ModelConfig>) => void;
+
+  // API Keys
+  updateApiKeys: (updates: Partial<ApiKeys>) => void;
 }
 
 const defaultPreferences: Preferences = {
@@ -91,6 +100,11 @@ const defaultModelConfigs: Record<string, ModelConfig> = {
   },
 };
 
+const defaultApiKeys: ApiKeys = {
+  openai: '',
+  anthropic: '',
+};
+
 export const useSettingsStore = create<SettingsState>()(
   persist(
     immer((set) => ({
@@ -98,6 +112,7 @@ export const useSettingsStore = create<SettingsState>()(
       workspace: defaultWorkspace,
       generationSettings: defaultGenerationSettings,
       modelConfigs: defaultModelConfigs,
+      apiKeys: defaultApiKeys,
 
       updatePreferences: (updates: Partial<Preferences>) => {
         set((state) => {
@@ -152,6 +167,12 @@ export const useSettingsStore = create<SettingsState>()(
           if (state.modelConfigs[name]) {
             Object.assign(state.modelConfigs[name], updates);
           }
+        });
+      },
+
+      updateApiKeys: (updates: Partial<ApiKeys>) => {
+        set((state) => {
+          Object.assign(state.apiKeys, updates);
         });
       },
     })),
